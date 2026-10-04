@@ -39,6 +39,14 @@ async def check_services(settings):
                     base64.b64encode(probe.getvalue()).decode()}},
             ]}],
         })
+        if response.status_code in (400, 422):
+            try:
+                error = response.json().get("error", {})
+            except ValueError:
+                error = {}
+            if (isinstance(error, dict) and error.get("param") == "image"
+                    and "0 image" in str(error.get("message", ""))):
+                raise ValueError("The FTT model does not accept images. Select an FTT service that accepts images.")
         response.raise_for_status()
         if not response.json().get("choices"):
             raise ValueError("The FTT image check returned no result.")
@@ -72,7 +80,8 @@ async def check_services(settings):
     failures = []
     for name, value in zip(("FTT", "TTS"), results):
         if isinstance(value, Exception):
-            failures.append(f"{name} service is unavailable. Check its settings and return later.")
+            failures.append(str(value) if isinstance(value, ValueError)
+                            else f"{name} service is unavailable. Check its settings and return later.")
     if failures:
         return {"ready": False, "errors": failures}
     return {"ready": True, "ftt_model": results[0], "errors": []}

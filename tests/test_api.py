@@ -143,14 +143,16 @@ def test_health_check_rejects_text_only_ftt(monkeypatch):
             return httpx.Response(200, json={"data": [{"id": "fixture"}]})
         if request.url.path == "/health":
             return httpx.Response(200, json={"status": "ready"})
-        return httpx.Response(400, json={"error": "Images are disabled."})
+        return httpx.Response(400, json={"error": {
+            "message": "At most 0 image(s) may be provided in one prompt.", "param": "image"}})
 
     original = httpx.AsyncClient
     monkeypatch.setattr(services.httpx, "AsyncClient", lambda **kwargs: original(
         transport=httpx.MockTransport(handle), **kwargs))
     result = asyncio.run(services.check_services(initial_settings()))
     assert not result["ready"]
-    assert "FTT" in result["errors"][0]
+    assert result["errors"] == [
+        "The FTT model does not accept images. Select an FTT service that accepts images."]
     assert "/v1/chat/completions" in requests
 
 

@@ -97,8 +97,9 @@ Use Check saved connections before uploading PDFs.
 Changes apply to new processes and retries. Running attempts keep their saved settings.
 Switching the TTS type invalidates incompatible speech checkpoints.
 
-The supplied FTT endpoint currently advertises `Qwen/Qwen3.8-27B-FP8` but rejects images.
-Its operator must enable image input, or select another image-capable endpoint in Admin.
+The FTT endpoints on ports 1812 and 1813 advertise `Qwen/Qwen3.8-27B-FP8`.
+Both accept text requests but reject image input. Their launch arguments include `--language-model-only`.
+Select an FTT service that accepts images in Admin before conversion.
 VNizer detects this condition before creating a conversion process.
 
 ## Service settings API
