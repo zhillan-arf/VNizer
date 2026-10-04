@@ -10,8 +10,8 @@ This release serves one owner. The admin page uses the same session as other pag
 
 | ID | Requirement | Required evidence |
 | --- | --- | --- |
-| R01 | Read optional credentials from `.env`. Show Enter when both credentials are absent. Reject partial configuration. | Authentication tests and browser check |
-| R02 | Show recent processes on the authentication and upload pages. Protect details when authentication is enabled. | API and browser checks |
+| R01 | Read optional credentials from `.env`. Show upload at `/` when credentials are absent. Show sign-in when both credentials are set. Reject partial configuration. | Authentication tests and browser check |
+| R02 | Show recent processes on the main page. Protect details when authentication is enabled. | API and browser checks |
 | R03 | Accept multiple PDFs through browse and drag-and-drop controls. Validate file type, size, and readable PDF structure. | Upload tests and browser check |
 | R04 | Convert must check both services. If either fails, explain that the user must return later. Do not enqueue work. | Service failure tests |
 | R05 | Create a process ID and open `/{process_id}`. Preserve progress after the browser closes or the worker restarts. | Browser and restart tests |

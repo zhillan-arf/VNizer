@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 
 import pymupdf
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from starlette.middleware.sessions import SessionMiddleware
@@ -287,8 +287,11 @@ def create_app(config=None):
     static = Path(__file__).parent / "static"
     app.mount("/static", StaticFiles(directory=static), name="static")
 
+    @app.get("/upload")
+    def old_upload_page():
+        return RedirectResponse(url="/", status_code=308)
+
     @app.get("/", response_class=HTMLResponse)
-    @app.get("/upload", response_class=HTMLResponse)
     @app.get("/admin", response_class=HTMLResponse)
     @app.get("/{process_id}", response_class=HTMLResponse)
     def page():

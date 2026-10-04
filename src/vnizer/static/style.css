@@ -166,71 +166,6 @@ h3 {
   line-height: 1.6;
   font-size: 14px;
 }
-.lead {
-  font-size: 17px;
-  line-height: 1.7;
-  color: var(--muted);
-  max-width: 560px;
-}
-.hero {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 48px;
-  align-items: center;
-  margin-bottom: 48px;
-}
-.hero-art {
-  background: #dce8df;
-  min-height: 220px;
-  border-radius: 18px;
-  position: relative;
-  padding: 30px;
-  overflow: hidden;
-}
-.hero-art .paper {
-  background: #fffef7;
-  max-width: 260px;
-  padding: 24px;
-  border-radius: 7px;
-  box-shadow: 0 8px 30px #263d4110;
-  transform: rotate(-4deg);
-  font-family: Georgia, serif;
-  font-size: 24px;
-}
-.paper-lines {
-  height: 7px;
-  background: #e5e7dc;
-  margin-top: 13px;
-  width: 85%;
-}
-.paper-lines.short {
-  width: 58%;
-}
-.wave {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  position: absolute;
-  right: 24px;
-  bottom: 36px;
-  padding: 20px;
-  background: #1d5757;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px #183a3a20;
-}
-.wave i {
-  display: block;
-  width: 4px;
-  height: 24px;
-  background: #d9e8bf;
-  border-radius: 3px;
-}
-.wave i:nth-child(3n) {
-  height: 40px;
-}
-.wave i:nth-child(2n) {
-  height: 15px;
-}
 .grid {
   display: grid;
   grid-template-columns: 1.7fr 1fr;
@@ -444,17 +379,8 @@ input[type="file"] {
   grid-template-columns: 1fr 1fr;
   gap: 0 20px;
 }
-.login-layout {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 70px;
-  align-items: start;
-}
-.login-layout .card {
+.login-card {
   max-width: 440px;
-}
-.login-layout h1 {
-  margin-top: 35px;
 }
 .tabs {
   display: flex;
@@ -565,29 +491,13 @@ footer {
   #app {
     padding: 30px 20px;
   }
-  .hero,
   .grid,
-  .login-layout {
+  .form-grid {
     grid-template-columns: 1fr;
     gap: 24px;
   }
-  .hero {
-    margin-bottom: 28px;
-  }
-  .hero-art {
-    display: none;
-  }
   .card {
     padding: 20px;
-  }
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-  .login-layout h1 {
-    margin-top: 0;
-  }
-  .login-layout .card {
-    max-width: none;
   }
   .section-head {
     align-items: flex-start;

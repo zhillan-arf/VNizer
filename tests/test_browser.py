@@ -57,11 +57,9 @@ def test_upload_progress_retry_download_and_admin(web):
     evidence = Path('/tmp/vnizer/p06')
     evidence.mkdir(parents=True, exist_ok=True)
     page.goto(url)
-    expect(page.get_by_role('button', name='Enter the studio')).to_be_visible()
-    page.screenshot(path=str(evidence / 'auth-desktop.png'), full_page=True)
-    page.get_by_role('button', name='Enter the studio').click()
-    expect(page).to_have_url(url + '/upload')
     expect(page.get_by_role('heading', name='Add your documents')).to_be_visible()
+    expect(page.locator('.hero')).to_have_count(0)
+    expect(page.get_by_role('button', name='Enter the studio')).to_have_count(0)
     page.screenshot(path=str(evidence / 'upload-desktop.png'), full_page=True)
     page.locator('#pdf-files').set_input_files([pdf_file(root / 'Methods.pdf'), pdf_file(root / 'Results.pdf')])
     page.get_by_role('button', name='Convert documents').click()
@@ -103,7 +101,7 @@ def test_upload_progress_retry_download_and_admin(web):
     page.set_viewport_size({'width': 390, 'height': 844})
     page.screenshot(path=str(evidence / 'avatars-mobile.png'), full_page=True)
     assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
-    page.goto(url + '/upload')
+    page.goto(url)
     expect(page.locator('#recent .recent-row')).to_have_count(1)
     page.screenshot(path=str(evidence / 'upload-mobile.png'), full_page=True)
     assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
@@ -117,7 +115,7 @@ def test_service_failure_and_drag_drop(web):
         return {'ready': False, 'errors': ['TTS service is unavailable. Return later.']}
 
     app.state.health_check = unavailable
-    page.goto(url + '/upload')
+    page.goto(url)
     data = pdf_file(root / 'Dropped.pdf').read_bytes()
     page.locator('#dropzone').evaluate('''(element, bytes) => {
         const transfer = new DataTransfer();
@@ -138,6 +136,7 @@ def test_authentication_and_avatar_admin(web):
     app.state.config.username = 'owner'
     app.state.config.password = 'secret'
     page.goto(url + '/upload')
+    expect(page).to_have_url(url + '/')
     expect(page.get_by_role('button', name='Sign in', exact=True)).to_be_visible()
     page.get_by_label('Username').fill('owner')
     page.get_by_label('Password').fill('wrong')
@@ -145,6 +144,7 @@ def test_authentication_and_avatar_admin(web):
     expect(page.locator('#login-error')).to_contain_text('incorrect')
     page.get_by_label('Password').fill('secret')
     page.get_by_role('button', name='Sign in', exact=True).click()
+    expect(page).to_have_url(url + '/')
     expect(page.get_by_role('heading', name='Add your documents')).to_be_visible()
     page.goto(url + '/admin')
     page.get_by_role('tab', name='Avatars').click()
@@ -162,11 +162,17 @@ def test_authentication_and_avatar_admin(web):
     expect(card).to_have_count(0)
     page.get_by_role('button', name='Sign out').click()
     expect(page.get_by_role('button', name='Sign in', exact=True)).to_be_visible()
+    page.goto(url + '/admin')
+    expect(page).to_have_url(url + '/')
+    page.get_by_label('Username').fill('owner')
+    page.get_by_label('Password').fill('secret')
+    page.get_by_role('button', name='Sign in', exact=True).click()
+    expect(page).to_have_url(url + '/admin')
 
 
 def test_admin_cancels_and_deletes_files_and_process(web):
     page, app, url, root = web
-    page.goto(url + '/upload')
+    page.goto(url)
     expect(page.get_by_role('heading', name='Add your documents')).to_be_visible()
     page.locator('#pdf-files').set_input_files(pdf_file(root / 'Delete me.pdf'))
     page.get_by_role('button', name='Convert documents').click()

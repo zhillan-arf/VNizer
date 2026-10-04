@@ -84,33 +84,30 @@ function recentRows(processes) {
     )
     .join("");
 }
-async function loginPage(session) {
-  app.innerHTML = `<div class="login-layout"><section><div class="eyebrow">Your reading, reimagined</div><h1>A new way to<br>listen and learn.</h1><p class="lead">Turn research papers into narrated visual novel videos. Keep the details. Take the reading with you.</p><div class="hint">One PDF. One transcript. Audio and video, ready to download.</div></section><div class="stack"><section class="card"><h2>Welcome to VNizer</h2><p class="muted">${session.auth_required ? "Sign in to open your document studio." : "Your document studio is ready."}</p><form id="login-form">${session.auth_required ? '<div class="field"><label for="username">Username</label><input id="username" autocomplete="username" required></div><div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>' : ""}<p id="login-error" class="error" role="alert"></p><button>${session.auth_required ? "Sign in" : "Enter the studio"} <span aria-hidden="true">→</span></button></form></section><section class="card"><h3>Recent processes</h3><div id="login-recent">${session.auth_required && !session.authenticated ? '<p class="muted">Sign in to view your recent processes.</p>' : ""}</div></section></div></div>`;
+async function loginPage() {
+  app.innerHTML = `<section class="card login-card"><h1>Sign in</h1><form id="login-form"><div class="field"><label for="username">Username</label><input id="username" autocomplete="username" required></div><div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div><p id="login-error" class="error" role="alert"></p><button>Sign in</button></form></section>`;
   document.querySelector("#login-form").onsubmit = async (event) => {
     event.preventDefault();
     const button = event.submitter;
     button.disabled = true;
     try {
       await post("/api/login", {
-        username: document.querySelector("#username")?.value || "",
-        password: document.querySelector("#password")?.value || "",
+        username: document.querySelector("#username").value,
+        password: document.querySelector("#password").value,
       });
       const target = sessionStorage.getItem("vnizer-return");
       sessionStorage.removeItem("vnizer-return");
       location.href =
         target?.startsWith("/") && !target.startsWith("//")
           ? target
-          : "/upload";
+          : "/";
     } catch (error) {
       errorAt("#login-error", error);
       button.disabled = false;
     }
   };
-  if (session.authenticated)
-    document.querySelector("#login-recent").innerHTML = recentRows(
-      await api("/api/processes"),
-    );
 }
+
 function updateFiles() {
   document.querySelector("#file-list").innerHTML = selectedFiles
     .map(
@@ -155,7 +152,7 @@ function addFiles(files) {
   updateFiles();
 }
 async function uploadPage() {
-  app.innerHTML = `<section class="hero"><div><div class="eyebrow">Document studio</div><h1>Let your papers<br>tell the story.</h1><p class="lead">Upload your PDFs. Get clear narration, a visual novel video, and a transcript you can keep.</p></div><div class="hero-art" aria-hidden="true"><div class="paper">A different<br>point of view.<div class="paper-lines"></div><div class="paper-lines"></div><div class="paper-lines short"></div></div><div class="wave">${"<i></i>".repeat(15)}</div></div></section><div class="grid"><section class="card"><div class="section-head"><h2>Add your documents</h2><span class="muted" id="file-count">0 / 20 files</span></div><div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Browse or drop PDF files"><span class="upload-icon" aria-hidden="true">↑</span><strong>Drop your PDFs here</strong><p class="muted">or click to browse your computer</p><span class="file-size">PDF files · Up to 100 MiB each</span></div><input class="sr-only" id="pdf-files" type="file" accept="application/pdf,.pdf" multiple aria-label="PDF files"><div id="file-list"></div><p id="upload-error" class="error" role="alert"></p><div class="actions"><button id="convert" disabled>Convert documents <span aria-hidden="true">→</span></button><span class="muted" id="upload-status">Services are checked before conversion.</span></div></section><div class="stack"><section class="card"><h2>Made for your next read</h2><ul class="outputs"><li><span class="output-icon">TXT</span><div><strong>Full transcript</strong><div class="file-size">Document text, ready to keep.</div></div></li><li><span class="output-icon">AUDIO</span><div><strong>Listen anywhere</strong><div class="file-size">An audio-only MP4 for your commute.</div></div></li><li><span class="output-icon">VIDEO</span><div><strong>A visual companion</strong><div class="file-size">Narration with a character and text.</div></div></li></ul><div class="hint">You can leave while conversion runs. Return to the process page whenever you are ready.</div></section><section class="card"><h3>Recent processes</h3><div id="recent"></div></section></div></div>`;
+  app.innerHTML = `<div class="grid"><section class="card"><div class="section-head"><h2>Add your documents</h2><span class="muted" id="file-count">0 / 20 files</span></div><div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Browse or drop PDF files"><span class="upload-icon" aria-hidden="true">↑</span><strong>Drop your PDFs here</strong><p class="muted">or click to browse your computer</p><span class="file-size">PDF files · Up to 100 MiB each</span></div><input class="sr-only" id="pdf-files" type="file" accept="application/pdf,.pdf" multiple aria-label="PDF files"><div id="file-list"></div><p id="upload-error" class="error" role="alert"></p><div class="actions"><button id="convert" disabled>Convert documents <span aria-hidden="true">→</span></button><span class="muted" id="upload-status">Services are checked before conversion.</span></div></section><div class="stack"><section class="card"><h2>Made for your next read</h2><ul class="outputs"><li><span class="output-icon">TXT</span><div><strong>Full transcript</strong><div class="file-size">Document text, ready to keep.</div></div></li><li><span class="output-icon">AUDIO</span><div><strong>Listen anywhere</strong><div class="file-size">An audio-only MP4 for your commute.</div></div></li><li><span class="output-icon">VIDEO</span><div><strong>A visual companion</strong><div class="file-size">Narration with a character and text.</div></div></li></ul><div class="hint">You can leave while conversion runs. Return to the process page whenever you are ready.</div></section><section class="card"><h3>Recent processes</h3><div id="recent"></div></section></div></div>`;
   const input = document.querySelector("#pdf-files"),
     drop = document.querySelector("#dropzone");
   input.onchange = () => {
@@ -242,7 +239,7 @@ async function processPage(id) {
   const available = process.documents.some((d) =>
     d.artifacts.some((a) => outputNames[a.kind]),
   );
-  app.innerHTML = `<div class="eyebrow">Your conversion</div><div class="section-head"><div><h1>${process.state === "completed" ? "Ready when you are." : process.state === "failed" ? "A step needs attention." : process.state === "canceled" ? "Conversion stopped." : "Your reading is on its way."}</h1><p class="muted">You can close this page and return later. Progress is saved.</p><div class="process-id">Process ${html(id)}</div></div>${badge(process.state)}</div><div class="actions"><a class="button secondary" href="/upload">New conversion</a>${available ? `<a class="button" href="/api/processes/${id}/download" download>Download all outputs</a>` : ""}${["queued", "running"].includes(process.state) ? '<button id="stop" class="danger">Stop conversion</button>' : ""}</div><div id="documents">${process.documents.map((d) => documentCard(d)).join("")}</div>`;
+  app.innerHTML = `<div class="eyebrow">Your conversion</div><div class="section-head"><div><h1>${process.state === "completed" ? "Ready when you are." : process.state === "failed" ? "A step needs attention." : process.state === "canceled" ? "Conversion stopped." : "Your reading is on its way."}</h1><p class="muted">You can close this page and return later. Progress is saved.</p><div class="process-id">Process ${html(id)}</div></div>${badge(process.state)}</div><div class="actions"><a class="button secondary" href="/">New conversion</a>${available ? `<a class="button" href="/api/processes/${id}/download" download>Download all outputs</a>` : ""}${["queued", "running"].includes(process.state) ? '<button id="stop" class="danger">Stop conversion</button>' : ""}</div><div id="documents">${process.documents.map((d) => documentCard(d)).join("")}</div>`;
   bindRetries(() => processPage(id));
   if (document.querySelector("#stop"))
     document.querySelector("#stop").onclick = (event) =>
@@ -418,16 +415,17 @@ async function start() {
     await post("/api/logout");
     location.href = "/";
   };
-  if (location.pathname === "/") return loginPage(session);
   if (!session.authenticated) {
-    sessionStorage.setItem("vnizer-return", location.pathname);
+    if (location.pathname !== "/")
+      sessionStorage.setItem("vnizer-return", location.pathname);
+    if (location.pathname === "/") return loginPage();
     location.href = "/";
     return;
   }
-  if (location.pathname === "/upload") return uploadPage();
+  if (location.pathname === "/") return uploadPage();
   if (location.pathname === "/admin") return adminPage();
   return processPage(location.pathname.slice(1));
 }
 start().catch((error) => {
-  app.innerHTML = `<section class="card"><h1>Unable to open this page.</h1><p class="error">${html(error.message)}</p><a class="button secondary" href="/upload">Return to the studio</a></section>`;
+  app.innerHTML = `<section class="card"><h1>Unable to open this page.</h1><p class="error">${html(error.message)}</p><a class="button secondary" href="/">Return to the studio</a></section>`;
 });

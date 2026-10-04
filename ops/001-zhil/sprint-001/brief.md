@@ -49,6 +49,7 @@ Use saved page and speech results to avoid repeating successful work.
 | P06 | Web pages and avatar administration | TASK-S001-006 | P05 | Browser workflow and visual checks; commit |
 | P07 | Deployment package and release checks | TASK-S001-007 | P06 | Full test suite and deployment handoff; commit |
 | P08 | External Supertonic TTS support | TASK-S001-008 | P07 | Live speech experiment, adapter checks, and deployment defaults; commit |
+| P10 | Main page simplification | TASK-S001-010 | P06 | Main page browser checks and commit |
 
 ## Acceptance
 
