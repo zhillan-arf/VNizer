@@ -1,5 +1,6 @@
 const app = document.querySelector("#app");
 let pollTimer;
+let adminView = "processes";
 let selectedFiles = [];
 const escapeHTML = (value) =>
   String(value ?? "").replace(
@@ -221,7 +222,7 @@ function documentCard(doc, admin = false) {
       : doc.total
         ? Math.round((doc.progress / doc.total) * 100)
         : 0;
-  return `<article class="card document"><div class="section-head"><div><h3>${html(doc.name)}</h3><span class="file-size">${doc.pages} page${doc.pages === 1 ? "" : "s"} · Attempt ${doc.attempt}</span></div>${badge(doc.state)}</div><div class="progress-label"><span>${stage}</span><span>${doc.state === "completed" ? "Complete" : `${doc.progress} / ${doc.total || "—"}`}</span></div><progress value="${progress}" max="100" aria-label="${html(doc.name)} progress"></progress>${doc.error ? `<p class="error">${html(doc.error)}</p>` : ""}<div class="actions">${["failed", "canceled"].includes(doc.state) ? `<button class="secondary small" data-retry="${doc.id}" data-stage="${doc.stage}">Retry ${doc.stage === "media" ? "speech and video" : "transcription"}</button>` : ""}${downloads.map((a) => `<a class="button secondary small" href="/api/artifacts/${a.id}" download>${outputNames[a.kind]}</a>`).join("")}</div>${admin ? `<details><summary>All artifacts (${doc.artifacts.length})</summary>${doc.artifacts.map((a) => `<div class="artifact-row"><span>${html(a.kind)} · ${a.id.slice(0, 8)} · ${bytes(a.size)}</span><div class="artifact-actions"><a href="/api/artifacts/${a.id}" download>Download</a><button class="danger small" data-delete-artifact="${a.id}" ${["queued", "parsing", "rendering"].includes(doc.state) ? "disabled" : ""}>Delete file</button></div></div>`).join("")}</details>` : ""}</article>`;
+  return `<article class="card document"><div class="section-head"><div><h3>${html(doc.name)}</h3><span class="file-size">${doc.pages} page${doc.pages === 1 ? "" : "s"} · Attempt ${doc.attempt}</span></div>${badge(doc.state)}</div><div class="progress-label"><span>${stage}</span><span>${doc.state === "completed" ? "Complete" : `${doc.progress} / ${doc.total || "—"}`}</span></div><progress value="${progress}" max="100" aria-label="${html(doc.name)} progress"></progress>${doc.error ? `<p class="error">${html(doc.error)}</p>` : ""}<div class="actions">${["failed", "canceled"].includes(doc.state) ? `<button class="secondary small" data-retry="${doc.id}" data-stage="${doc.stage}">Retry ${doc.stage === "media" ? "speech and video" : "transcription"}</button>` : ""}${downloads.map((a) => `<a class="button secondary small" href="/api/artifacts/${a.id}" download>${outputNames[a.kind]}</a>`).join("")}</div>${admin ? `<details><summary>All artifacts (${doc.artifacts.length})</summary>${doc.artifacts.map((a) => `<div class="artifact-row"><span>${html(a.name || a.kind)} · ${bytes(a.size)}</span><div class="artifact-actions"><a href="/api/artifacts/${a.id}" download>Download</a><button class="danger small" data-delete-artifact="${a.id}" ${["queued", "parsing", "rendering"].includes(doc.state) ? "disabled" : ""}>Delete file</button></div></div>`).join("")}</details>` : ""}</article>`;
 }
 function bindRetries(refresh) {
   document.querySelectorAll("[data-retry]").forEach(
@@ -265,6 +266,7 @@ function scheduleProcessPoll(id, delay = 2500) {
   }, delay);
 }
 async function adminPage() {
+  adminView = "processes";
   app.innerHTML =
     '<div class="eyebrow">Studio controls</div><h1>Keep everything in order.</h1><p class="lead">Manage conversions, service connections, and the characters that bring your documents to life.</p><div class="tabs" role="tablist"><button data-tab="processes" role="tab" class="active" aria-selected="true">Processes & files</button><button data-tab="settings" role="tab" aria-selected="false">Services</button><button data-tab="avatars" role="tab" aria-selected="false">Avatars</button></div><section id="admin-content"></section>';
   document.querySelectorAll("[data-tab]").forEach(
@@ -272,6 +274,9 @@ async function adminPage() {
       (button.onclick = () =>
         action(button, async () => {
           clearTimeout(pollTimer);
+          adminView = button.dataset.tab;
+          document.querySelector("#admin-content").innerHTML =
+            '<p class="muted">Loading…</p>';
           document.querySelectorAll("[data-tab]").forEach((b) => {
             b.classList.toggle("active", b === button);
             b.setAttribute("aria-selected", String(b === button));
@@ -286,7 +291,8 @@ async function adminPage() {
   await adminProcesses();
 }
 async function adminProcesses() {
-  const processes = await api("/api/processes");
+  const processes = await api("/api/processes?include_work=true");
+  if (adminView !== "processes") return;
   document.querySelector("#admin-content").innerHTML =
     `<div class="section-head"><h2>All processes <span class="muted">(${processes.length})</span></h2><button id="refresh" class="secondary small">Refresh</button></div>${processes.length ? processes.map((p) => `<section class="process-list"><div class="section-head"><div><a href="/${p.id}" class="file-name">${html(date(p.created))}</a><div class="process-id">${p.id}</div></div><div class="actions">${badge(p.state)}${["queued", "running"].includes(p.state) ? `<button class="secondary small" data-stop="${p.id}">Stop</button>` : ""}<button class="danger small" data-delete-process="${p.id}">Delete process</button></div></div>${p.documents.map((d) => documentCard(d, true)).join("")}</section>`).join("") : '<div class="card empty">No processes yet. Start a conversion in the studio.</div>'}`;
   document.querySelector("#refresh").onclick = (event) =>
@@ -325,6 +331,7 @@ async function adminProcesses() {
 }
 async function adminSettings() {
   const settings = await api("/api/settings");
+  if (adminView !== "settings") return;
   const fields = (prefix) =>
     `<div class="field"><label for="${prefix}_url">Service URL</label><input id="${prefix}_url" name="${prefix}_url" type="url" value="${html(settings[prefix + "_url"])}" required></div><div class="field"><label for="${prefix}_api_key">API key ${settings[prefix + "_api_key_configured"] ? "(saved)" : "(optional)"}</label><input id="${prefix}_api_key" name="${prefix}_api_key" type="password" autocomplete="new-password" placeholder="Leave empty to keep the saved key"><button type="button" class="quiet small" data-clear-key="${prefix}">Clear saved key</button></div>`;
   document.querySelector("#admin-content").innerHTML =
@@ -365,6 +372,7 @@ async function adminSettings() {
 }
 async function adminAvatars() {
   const avatars = await api("/api/avatars");
+  if (adminView !== "avatars") return;
   document.querySelector("#admin-content").innerHTML =
     `<div class="grid"><section class="card"><h2>Character library</h2><p class="muted">Select one character for each mood. Running attempts keep their current assets.</p><div class="avatar-grid">${avatars.map((a) => `<article class="avatar-card">${a.media_type === "video" ? `<video src="/api/avatars/${a.id}/preview" muted loop autoplay playsinline aria-label="${html(a.name)}"></video>` : `<img src="/api/avatars/${a.id}/preview" alt="${html(a.name)}" loading="lazy">`}<h3>${html(a.name)}</h3><div class="file-size">${html(a.mood)}</div><div class="actions">${a.selected ? '<span class="badge completed">Selected</span>' : `<button class="secondary small" data-select-avatar="${a.id}">Select</button>`}<button class="danger small" data-delete-avatar="${a.id}">Delete</button></div></article>`).join("")}</div></section><form id="avatar-form" class="card"><h2>Add an avatar</h2><p class="muted">Use an image or a clip of up to 30 seconds. Maximum file size: 50 MiB.</p><div class="field"><label for="avatar-name">Name</label><input id="avatar-name" name="name" maxlength="120" required></div><div class="field"><label for="avatar-mood">Mood</label><select id="avatar-mood" name="mood">${["neutral", "explaining", "curious", "positive", "serious"].map((m) => `<option>${m}</option>`).join("")}</select></div><div class="field"><label for="avatar-file">Avatar file</label><input id="avatar-file" name="file" type="file" accept=".png,.jpg,.jpeg,.gif,.webp,.mp4,.webm" required></div><p id="avatar-error" class="error" role="alert"></p><button>Upload avatar</button></form></div>`;
   document.querySelector("#avatar-form").onsubmit = async (event) => {

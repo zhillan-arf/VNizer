@@ -1,0 +1,51 @@
+name: vnizer
+x-app: &app
+  image: vnizer:local
+  build:
+    context: ..
+    dockerfile: deploy/Dockerfile
+  env_file: ${VNIZER_ENV_FILE:-../.env}
+  environment:
+    VNIZER_DATA_ROOT: /data
+    VNIZER_TTS_URL: ${VNIZER_TTS_URL_DOCKER:-http://tts:1813}
+  volumes:
+    - ../data:/data
+  restart: unless-stopped
+  init: true
+  stop_grace_period: 20s
+services:
+  web:
+    <<: *app
+    ports:
+      - "${VNIZER_BIND_ADDRESS:-127.0.0.1}:${VNIZER_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api/session', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  worker:
+    <<: *app
+    command: ["vnizer", "worker"]
+  tts:
+    profiles: ["tts"]
+    image: vnizer-tts:local
+    build:
+      context: ..
+      dockerfile: deploy/tts/Dockerfile
+    environment:
+      MODEL_PATH: /models/Qwen3-TTS-12Hz-1.7B-CustomVoice
+      TTS_API_KEY: ${VNIZER_TTS_API_KEY:-}
+    volumes:
+      - ${VNIZER_MODEL_ROOT:-/data-model/zhillan/VNizer}:/models:ro
+    ports:
+      - "127.0.0.1:${VNIZER_TTS_PORT:-1813}:1813"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 60s

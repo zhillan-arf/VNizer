@@ -1,7 +1,7 @@
 ---
 id: SPRINT-001
 title: Deliver the PDF narration application
-status: active
+status: complete
 owner: 001-zhil
 ---
 
@@ -71,3 +71,10 @@ VLM output can omit content or misread equations. Preserve provenance and report
 Long documents can require substantial processing time and disk space.
 The host GPU is occupied. Real TTS quality checks depend on later deployment.
 Existing character permissions do not establish permission for public video distribution.
+
+## Completion evidence
+
+All seven controllers are archived with `status: done`.
+The requirement audit is `docs/verification/release-audit.md`.
+The final test and image-build evidence is `docs/verification/p07.md`.
+The user-run deployment procedure is `deploy/README.md`.

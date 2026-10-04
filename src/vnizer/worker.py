@@ -9,7 +9,7 @@ import time
 
 from .avatars import snapshot_avatars
 from .config import Config
-from .store import Store
+from .store import TERMINAL, Store
 
 
 def stop_child(child):
@@ -35,18 +35,20 @@ def run_document(store, document, stopping, command=None):
     log.parent.mkdir(parents=True, exist_ok=True)
     environment = dict(os.environ, VNIZER_DATA_ROOT=str(store.root))
     with log.open("ab") as output:
-        child = subprocess.Popen(command, stdout=output, stderr=output,
-                                 start_new_session=True, env=environment)
+        child = subprocess.Popen([sys.executable, "-m", "vnizer.child", str(os.getpid()), *command],
+                                 stdout=output, stderr=output, start_new_session=True, env=environment)
         try:
             while child.poll() is None:
                 if stopping() or store.is_canceled(document["id"]):
                     stop_child(child)
-                    state = "canceled" if store.is_canceled(document["id"]) else "queued"
-                    store.update_document(document["id"], state=state)
+                    current = store.document(document["id"])
+                    if current and current["state"] not in TERMINAL:
+                        state = "canceled" if store.is_canceled(document["id"]) else "queued"
+                        store.update_document(document["id"], state=state)
                     return
                 time.sleep(0.1)
             current = store.document(document["id"])
-            if store.is_canceled(document["id"]):
+            if store.is_canceled(document["id"]) and current and current["state"] not in TERMINAL:
                 store.update_document(document["id"], state="canceled")
             elif current and current["state"] not in ("completed", "failed"):
                 store.update_document(document["id"], state="failed",

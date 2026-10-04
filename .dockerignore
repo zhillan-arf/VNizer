@@ -1,0 +1,11 @@
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!src/
+!src/**
+!deploy/
+!deploy/tts/
+!deploy/tts/**
+**/__pycache__/
+**/*.pyc

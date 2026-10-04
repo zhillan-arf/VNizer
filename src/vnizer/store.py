@@ -124,7 +124,10 @@ class Store:
                 doc = dict(row)
                 doc.pop("settings")
                 doc["artifacts"] = [dict(a) for a in db.execute(
-                    "SELECT id,kind,size FROM artifacts WHERE document_id=?", (doc["id"],))]
+                    "SELECT id,kind,size,path FROM artifacts WHERE document_id=?", (doc["id"],))]
+                for artifact in doc["artifacts"]:
+                    artifact["name"] = str(Path(artifact.pop("path")).relative_to(
+                        Path("processes") / process_id / doc["id"]))
                 result["documents"].append(doc)
             states = [d["state"] for d in result["documents"]]
             result["state"] = (
@@ -139,6 +142,26 @@ class Store:
         with self.connect() as db:
             ids = [r[0] for r in db.execute("SELECT id FROM processes ORDER BY created DESC")]
         return [self.process(i) for i in ids]
+
+    def sync_work_artifacts(self):
+        with self.connect() as db:
+            documents = [dict(row) for row in db.execute("SELECT * FROM documents")]
+            for document in documents:
+                root = self.document_root(document)
+                for path in root.rglob("*"):
+                    if not path.is_file() or path.is_symlink():
+                        continue
+                    try:
+                        size = path.stat().st_size
+                    except FileNotFoundError:
+                        continue
+                    relative = str(path.relative_to(self.root))
+                    db.execute("""INSERT INTO artifacts VALUES (?,?,?,?,?)
+                        ON CONFLICT(path) DO UPDATE SET size=excluded.size""",
+                               (new_id(), document["id"], "work", relative, size))
+            for row in db.execute("SELECT id,path FROM artifacts").fetchall():
+                if not self.file_path(row["path"]).is_file():
+                    db.execute("DELETE FROM artifacts WHERE id=?", (row["id"],))
 
     def artifact(self, artifact_id):
         with self.connect() as db:

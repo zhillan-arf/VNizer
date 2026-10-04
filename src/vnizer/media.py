@@ -3,6 +3,7 @@
 import json
 import os
 import subprocess
+import sys
 import time
 import wave
 from pathlib import Path
@@ -20,7 +21,7 @@ if not Path(FONT).exists():
 
 
 def run_ffmpeg(arguments):
-    result = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *arguments],
+    result = subprocess.run([sys.executable, "-m", "vnizer.child", str(os.getpid()), "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *arguments],
                             capture_output=True, timeout=3600, check=False)
     if result.returncode:
         raise ValueError("Media encoding failed: " + result.stderr.decode(errors="replace")[-1200:])

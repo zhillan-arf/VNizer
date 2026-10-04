@@ -2,3 +2,5 @@ qwen-tts==0.1.1
 fastapi==0.142.2
 uvicorn==0.54.0
 soundfile==0.13.1
+torch==2.9.1
+torchaudio==2.9.1

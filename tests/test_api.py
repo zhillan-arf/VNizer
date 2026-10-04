@@ -152,3 +152,43 @@ def test_health_check_rejects_text_only_ftt(monkeypatch):
     assert not result["ready"]
     assert "FTT" in result["errors"][0]
     assert "/v1/chat/completions" in requests
+
+
+def test_admin_includes_work_files(client):
+    process = upload(client).json()
+    doc = client.app.state.store.document(process['documents'][0]['id'])
+    root = client.app.state.store.document_root(doc)
+    (root / 'worker.log').write_text('Task started.')
+    rows = client.get('/api/processes?include_work=true').json()
+    artifacts = rows[0]['documents'][0]['artifacts']
+    log = next(a for a in artifacts if a['name'] == 'worker.log')
+    assert log['kind'] == 'work'
+    assert client.get(f"/api/artifacts/{log['id']}").text == 'Task started.'
+
+
+def test_environment_credentials_must_be_complete(monkeypatch, tmp_path):
+    import vnizer.config as config_module
+
+    monkeypatch.setattr(config_module, 'load_dotenv', lambda: None)
+    monkeypatch.setenv('VNIZER_DATA_ROOT', str(tmp_path))
+    monkeypatch.setenv('VNIZER_USERNAME', 'owner')
+    monkeypatch.setenv('VNIZER_PASSWORD', '')
+    monkeypatch.setenv('VNIZER_SESSION_SECRET', '')
+    with pytest.raises(ValueError, match='both'):
+        Config.from_env()
+    monkeypatch.setenv('VNIZER_PASSWORD', 'secret')
+    with pytest.raises(ValueError, match='32 characters'):
+        Config.from_env()
+    monkeypatch.setenv('VNIZER_SESSION_SECRET', 's' * 32)
+    loaded = Config.from_env()
+    assert loaded.username == 'owner'
+    assert loaded.password == 'secret'
+    assert loaded.data_root == tmp_path
+
+
+def test_upload_size_and_file_count_limits(client):
+    client.app.state.config.max_file_bytes = 10
+    assert upload(client).status_code == 413
+    assert client.app.state.store.processes() == []
+    client.app.state.config.max_files = 1
+    assert upload(client, 2).status_code == 422

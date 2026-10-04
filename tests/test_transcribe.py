@@ -112,3 +112,16 @@ def test_canceled_document_does_not_call_service(tmp_path):
     with (httpx.Client(transport=httpx.MockTransport(lambda request: pytest.fail("Unexpected request"))) as client,
           pytest.raises(InterruptedError)):
         transcribe(store, document, client)
+
+
+def test_table_figure_equation_content_retains_details():
+    blocks = [
+        {'role': 'table', 'text': 'Table one. Temperature in degrees Celsius. Row A: minus five. Row B: twelve.', 'mood': 'explaining'},
+        {'role': 'figure', 'text': 'Figure two. The horizontal axis is time in seconds. The vertical axis is distance in meters. The final label is unreadable.', 'mood': 'neutral'},
+        {'role': 'equation', 'text': 'Equation three. Open parenthesis x plus two close parenthesis divided by three equals minus four.', 'mood': 'explaining'},
+    ]
+    content = {'blank': False, 'blocks': blocks, 'warnings': ['Figure two has an unreadable final label.']}
+    normalized = normalize_response({'choices': [{'finish_reason': 'stop', 'message': {'content': json.dumps(content)}}]})
+    assert normalized == content
+    for block in normalized['blocks']:
+        assert ' '.join(chunk_text(block['text'])) == block['text']

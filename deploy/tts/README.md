@@ -23,7 +23,9 @@ Build from the repository root with `deploy/tts/Dockerfile`.
 Mount the model root at `/models` as read-only storage.
 Give the container access to an NVIDIA GPU through the NVIDIA Container Toolkit.
 The image uses Python 3.12 and the official `qwen-tts` package.
-Model loading uses CUDA, bfloat16, and SDPA attention.
+Model loading uses CUDA 12.8, bfloat16, and SDPA attention.
+PyTorch and torchaudio are pinned to 2.9.1.
+The build runs an import check without loading model weights.
 The offline environment prevents an unexpected model download during startup.
 
 Set `TTS_API_KEY` to require bearer authentication.
@@ -36,3 +38,5 @@ Use one Uvicorn worker to avoid duplicate model allocation.
 HTTP contract tests pass with a model fixture.
 Real GPU inference has not run because the host GPU is reserved for another project.
 The user will deploy this service and check the resulting voice with real PDF input.
+
+The runtime wheel selection follows the [official PyTorch version instructions](https://pytorch.org/get-started/previous-versions/).

@@ -29,3 +29,26 @@ def test_avatar_upload_selection_deletion_and_preview(tmp_path):
         assert not any(a['id'] == 'builtin-neutral' for a in client.get('/api/avatars').json())
         assert client.post('/api/avatars', data={'name': 'Bad', 'mood': 'neutral'},
                            files={'file': ('bad.mp4', b'bad', 'video/mp4')}).status_code == 422
+
+
+def test_attempt_keeps_its_selected_avatar_after_admin_change(tmp_path):
+    from vnizer.avatars import add_avatar, snapshot_avatars
+    from vnizer.files import digest_file
+    from vnizer.store import Store, new_id
+
+    store = Store(tmp_path)
+    seed_avatars(store)
+    document = {'id': new_id(), 'process_id': new_id(), 'attempt': 1}
+    snapshot = snapshot_avatars(store, document)
+    initial = digest_file(store.file_path(snapshot['neutral']))
+    new_file = tmp_path / 'new.png'
+    Image.new('RGB', (40, 40), 'orange').save(new_file)
+    avatar_id = add_avatar(store, new_file, 'New guide', 'neutral')
+    with store.connect() as db:
+        db.execute("UPDATE avatars SET selected=0 WHERE mood='neutral'")
+        db.execute('UPDATE avatars SET selected=1 WHERE id=?', (avatar_id,))
+    assert snapshot_avatars(store, document) == snapshot
+    assert digest_file(store.file_path(snapshot['neutral'])) == initial
+    document['attempt'] = 2
+    replacement = snapshot_avatars(store, document)
+    assert digest_file(store.file_path(replacement['neutral'])) != initial

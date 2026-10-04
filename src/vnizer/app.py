@@ -130,7 +130,9 @@ def create_app(config=None):
         return await app.state.health_check(store.settings())
 
     @app.get("/api/processes", dependencies=secure)
-    def processes():
+    def processes(include_work: bool = False):
+        if include_work:
+            store.sync_work_artifacts()
         return store.processes()
 
     @app.get("/api/processes/{process_id}", dependencies=secure)
