@@ -54,6 +54,7 @@ Snapshot avatar files per attempt so admin changes cannot break running renders.
 ## Service contracts
 
 FTT uses an OpenAI-compatible `/v1/models` probe and `/v1/chat/completions` request.
+The preflight also sends a small image request to detect disabled image input.
 Normalize URLs with or without `/v1`.
 Resolve the advertised model when no model is configured. Preserve explicit model choices.
 The supplied default endpoint is `http://10.12.1.193:1812`.

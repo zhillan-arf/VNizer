@@ -125,3 +125,30 @@ def test_settings_hide_keys_and_validate_urls(client):
     assert client.post("/api/settings", json={"ftt_url": "file:///etc/passwd"}).status_code == 422
     assert client.post("/api/settings", json={"unknown": "value"}).status_code == 422
 
+
+
+def test_health_check_rejects_text_only_ftt(monkeypatch):
+    import asyncio
+
+    import httpx
+
+    from vnizer import services
+    from vnizer.config import initial_settings
+
+    requests = []
+
+    def handle(request):
+        requests.append(request.url.path)
+        if request.url.path == "/v1/models":
+            return httpx.Response(200, json={"data": [{"id": "fixture"}]})
+        if request.url.path == "/health":
+            return httpx.Response(200, json={"status": "ready"})
+        return httpx.Response(400, json={"error": "Images are disabled."})
+
+    original = httpx.AsyncClient
+    monkeypatch.setattr(services.httpx, "AsyncClient", lambda **kwargs: original(
+        transport=httpx.MockTransport(handle), **kwargs))
+    result = asyncio.run(services.check_services(initial_settings()))
+    assert not result["ready"]
+    assert "FTT" in result["errors"][0]
+    assert "/v1/chat/completions" in requests

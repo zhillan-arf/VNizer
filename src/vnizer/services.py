@@ -1,6 +1,9 @@
 import asyncio
+import base64
+import io
 
 import httpx
+from PIL import Image
 
 
 def ftt_base(url):
@@ -21,7 +24,23 @@ async def check_services(settings):
         model = settings.get("ftt_model")
         if not models or (model and model not in models):
             raise ValueError("The configured FTT model is unavailable.")
-        return model or models[0]
+        model = model or models[0]
+        probe = io.BytesIO()
+        Image.new("RGB", (64, 64), "white").save(probe, format="PNG")
+        response = await client.post(ftt_base(settings["ftt_url"]) + "/chat/completions",
+                                     headers=headers(settings.get("ftt_api_key")), json={
+            "model": model, "max_tokens": 8,
+            "chat_template_kwargs": {"enable_thinking": False},
+            "messages": [{"role": "user", "content": [
+                {"type": "text", "text": "Reply OK."},
+                {"type": "image_url", "image_url": {"url": "data:image/png;base64," +
+                    base64.b64encode(probe.getvalue()).decode()}},
+            ]}],
+        })
+        response.raise_for_status()
+        if not response.json().get("choices"):
+            raise ValueError("The FTT image check returned no result.")
+        return model
 
     async def check_tts(client):
         response = await client.get(settings["tts_url"].rstrip("/") + "/health",
