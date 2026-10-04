@@ -5,6 +5,8 @@ import io
 import httpx
 from PIL import Image
 
+from .tts import api_base, service_type
+
 
 def ftt_base(url):
     base = url.rstrip("/")
@@ -43,6 +45,14 @@ async def check_services(settings):
         return model
 
     async def check_tts(client):
+        if service_type(settings) == "supertonic":
+            response = await client.get(api_base(settings["tts_url"]) + "/audio/voices",
+                                        headers=headers(settings.get("tts_api_key")))
+            response.raise_for_status()
+            voices = [voice["id"] for voice in response.json()["voices"]]
+            if settings["speaker"] not in voices:
+                raise ValueError("The selected TTS voice is unavailable.")
+            return True
         response = await client.get(settings["tts_url"].rstrip("/") + "/health",
                                     headers=headers(settings.get("tts_api_key")))
         response.raise_for_status()

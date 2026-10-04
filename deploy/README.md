@@ -44,33 +44,54 @@ The proxy must preserve the original host and scheme for the origin check.
 
 ## Docker deployment
 
-Install Docker Compose and the NVIDIA Container Toolkit before starting the local TTS service.
-Run these commands from the repository root.
-Keep existing `.env` values if the file already exists.
+Run these commands from the repository root. Docker Compose reads `deploy/.env`.
+A prepared file exists locally. For a new checkout, create it from the example:
 
 ```sh
-cp .env.example .env
-# Edit .env before starting services.
-docker compose --env-file .env -f deploy/compose.yaml --profile tts config
-docker compose --env-file .env -f deploy/compose.yaml --profile tts build
-docker compose --env-file .env -f deploy/compose.yaml --profile tts up -d
+test -f deploy/.env || cp deploy/.env.example deploy/.env
+docker compose --env-file deploy/.env -f deploy/compose.yaml config
+docker compose --env-file deploy/.env -f deploy/compose.yaml up -d --build web worker
 ```
 
-The default web binding is `127.0.0.1:8080`.
-Set `VNIZER_BIND_ADDRESS` and `VNIZER_PORT` to change it.
-The TTS host port is bound to `127.0.0.1:1813`.
-The model volume is read-only. The TTS container does not download weights at startup.
+The default web address is `http://127.0.0.1:8080`.
+Set `VNIZER_BIND_ADDRESS` and `VNIZER_PORT` in `deploy/.env` to change it.
+Set credentials and API keys in this file when needed. Keep it outside Git.
+The tracked `deploy/.env.example` contains the same initial defaults.
 
-For an existing external TTS service, omit `--profile tts`.
-Set `VNIZER_TTS_URL_DOCKER` to an address reachable from the containers.
-For the supplied TTS container, use `http://tts:1813`.
-Do not use `127.0.0.1:1813` to address another container.
+The default TTS type is `supertonic`, at `http://10.12.1.249:5001`.
+It uses voice `F1` and English narration. The adapter sends the language code `en`.
+Supertonic returns mono PCM16 at 24,000 Hz. VNizer converts each response to WAV.
+The API does not accept mood instructions. Avatar moods still work.
+The connection check verifies access and the selected voice. It does not generate speech or verify language support.
+Check voice quality and source language with a short document before processing long documents.
+
+For the supplied local Qwen service, set these values in `deploy/.env`:
+
+```dotenv
+VNIZER_TTS_TYPE=qwen
+VNIZER_TTS_URL=http://tts:1813
+VNIZER_SPEAKER=Ryan
+VNIZER_LANGUAGE=English
+```
+
+Install the NVIDIA Container Toolkit and prepare the model files before starting Qwen.
+Then run:
+
+```sh
+docker compose --env-file deploy/.env -f deploy/compose.yaml --profile tts up -d --build tts
+docker compose --env-file deploy/.env -f deploy/compose.yaml up -d --build web worker
+```
+
+The local TTS host port is `127.0.0.1:1813`. Its model volume is read-only.
+The container does not download weights at startup.
 
 Service settings are saved in SQLite after first initialization.
-Environment changes do not overwrite saved service settings.
-The prepared local database uses the development TTS URL.
-After Docker startup, open Admin → Services and save `http://tts:1813` as the TTS URL.
+Environment changes do not overwrite saved settings.
+The prepared local database now selects Supertonic, voice F1, and English.
+For other existing databases, open Admin → Services and save the type, URL, speaker, and language.
 Use Check saved connections before uploading PDFs.
+Changes apply to new processes and retries. Running attempts keep their saved settings.
+Switching the TTS type invalidates incompatible speech checkpoints.
 
 The supplied FTT endpoint currently advertises `Qwen/Qwen3.8-27B-FP8` but rejects images.
 Its operator must enable image input, or select another image-capable endpoint in Admin.
@@ -84,7 +105,7 @@ The following example applies when authentication is bypassed:
 ```sh
 curl -X POST http://127.0.0.1:8080/api/settings \
   -H 'Content-Type: application/json' \
-  -d '{"ftt_url":"http://10.12.1.193:1812","ftt_model":"","tts_url":"http://tts:1813"}'
+  -d '{"ftt_url":"http://10.12.1.193:1812","ftt_model":"","tts_type":"supertonic","tts_url":"http://10.12.1.249:5001","speaker":"F1","language":"English"}'
 curl -X POST http://127.0.0.1:8080/api/health-check
 ```
 
@@ -106,8 +127,8 @@ Only one worker can use a data directory.
 A Linux parent-death signal stops child processes after an unexpected worker exit.
 
 ```sh
-docker compose --env-file .env -f deploy/compose.yaml logs --tail 100 web worker
-docker compose --env-file .env -f deploy/compose.yaml --profile tts logs --tail 100 tts
+docker compose --env-file deploy/.env -f deploy/compose.yaml logs --tail 100 web worker
+docker compose --env-file deploy/.env -f deploy/compose.yaml --profile tts logs --tail 100 tts
 ```
 
 Admin lists source files, outputs, page records, speech checkpoints, and temporary work files.
@@ -123,7 +144,7 @@ The backup command refuses a running worker, but it does not stop the web servic
 The TTS service can stay running because it does not modify document storage.
 
 ```sh
-docker compose --env-file .env -f deploy/compose.yaml stop web worker
+docker compose --env-file deploy/.env -f deploy/compose.yaml stop web worker
 uv run vnizer backup --destination /path/to/new-backup
 uv run vnizer restore --source /path/to/new-backup --destination /path/to/new-data
 ```
@@ -132,7 +153,7 @@ Use new destination directories. The tools do not replace existing data.
 The backup uses the SQLite backup API and copies artifact and avatar files.
 It includes a SHA-256 manifest and `records.json` with portable table records.
 Restore checks file hashes, database integrity, and record references.
-Copy `.env` separately. The backup contains service keys stored in SQLite, so protect the backup directory.
+Copy `deploy/.env` separately. The backup contains service keys stored in SQLite, so protect the backup directory.
 
 To use restored data, move it to `data/` while services remain stopped.
 Keep the previous data directory until the restored application passes acceptance checks.
@@ -145,7 +166,7 @@ Cloud deployment is outside Sprint 001.
 
 ## Live acceptance with the prepared PDFs
 
-1. Deploy the TTS service when the GPU is available.
+1. Check the external TTS service, or deploy local Qwen when the GPU is available.
 2. Enable image input on FTT or configure another compatible endpoint.
 3. Save the correct service URLs, speaker, and source language in Admin.
 4. Check both service connections.
@@ -163,6 +184,7 @@ Cloud deployment is outside Sprint 001.
 16. Restore the working URL and retry the failed stage.
 17. Test a backup and restore before deleting valuable source files.
 
-Real GPU voice quality and the owner's PDF content remain deployment acceptance checks.
+The external service passed a short speech and MP4 experiment. See `docs/verification/p08.md`.
+Local Qwen voice quality and the owner's PDF content remain deployment acceptance checks.
 The automated release tests use local HTTP fixtures and real FFmpeg encoding.
 They do not claim that simulated audio validates the Qwen model.

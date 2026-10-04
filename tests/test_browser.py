@@ -89,9 +89,12 @@ def test_upload_progress_retry_download_and_admin(web):
     page.screenshot(path=str(evidence / 'process-complete-desktop.png'), full_page=True)
     page.goto(url + '/admin')
     page.get_by_role('tab', name='Services').click()
-    page.locator('#speaker').fill('Ryan')
+    page.locator('#tts_type').select_option('supertonic')
+    page.locator('#speaker').fill('F1')
     page.get_by_role('button', name='Save settings', exact=True).click()
     expect(page.locator('#notice')).to_have_text('Settings saved.')
+    expect(page.locator('#tts_type')).to_have_value('supertonic')
+    assert store.settings()['tts_type'] == 'supertonic'
     page.screenshot(path=str(evidence / 'services-desktop.png'), full_page=True)
     page.get_by_role('tab', name='Avatars').click()
     expect(page.locator('.avatar-card')).to_have_count(5)

@@ -23,7 +23,9 @@ Leave both credential fields empty to enter without a password.
 Use [the deployment guide](deploy/README.md) for Docker, configuration, backup, restore, and live PDF acceptance.
 The user deploys the Docker services. No service was deployed during development.
 The supplied FTT endpoint currently disables images. Enable image input or select another compatible service before conversion.
-Live Qwen voice quality remains a GPU deployment check.
+Docker defaults use the external Supertonic service. Local Qwen remains available.
+Set the app port, TTS type, and TTS URL in `deploy/.env`.
+See [the external TTS experiment](docs/verification/p08.md) for results and limits.
 
 ## Prepared assets
 

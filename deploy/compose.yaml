@@ -4,10 +4,13 @@ x-app: &app
   build:
     context: ..
     dockerfile: deploy/Dockerfile
-  env_file: ${VNIZER_ENV_FILE:-../.env}
+  env_file: ${VNIZER_ENV_FILE:-.env}
   environment:
     VNIZER_DATA_ROOT: /data
-    VNIZER_TTS_URL: ${VNIZER_TTS_URL_DOCKER:-http://tts:1813}
+    VNIZER_TTS_TYPE: ${VNIZER_TTS_TYPE:-supertonic}
+    VNIZER_TTS_URL: ${VNIZER_TTS_URL:-http://10.12.1.249:5001}
+    VNIZER_SPEAKER: ${VNIZER_SPEAKER:-F1}
+    VNIZER_LANGUAGE: ${VNIZER_LANGUAGE:-English}
   volumes:
     - ../data:/data
   restart: unless-stopped

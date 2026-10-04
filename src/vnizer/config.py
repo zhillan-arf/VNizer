@@ -37,12 +37,16 @@ class Config:
 
 
 def initial_settings():
+    tts_type = os.getenv("VNIZER_TTS_TYPE", "qwen")
+    if tts_type not in ("qwen", "supertonic"):
+        raise ValueError("VNIZER_TTS_TYPE must be qwen or supertonic.")
     return {
+        "tts_type": tts_type,
         "ftt_url": os.getenv("VNIZER_FTT_URL", "http://10.12.1.193:1812"),
         "ftt_model": os.getenv("VNIZER_FTT_MODEL", ""),
         "ftt_api_key": os.getenv("VNIZER_FTT_API_KEY", ""),
         "tts_url": os.getenv("VNIZER_TTS_URL", "http://127.0.0.1:1813"),
         "tts_api_key": os.getenv("VNIZER_TTS_API_KEY", ""),
-        "speaker": os.getenv("VNIZER_SPEAKER", "Ryan"),
+        "speaker": os.getenv("VNIZER_SPEAKER", "F1" if tts_type == "supertonic" else "Ryan"),
         "language": os.getenv("VNIZER_LANGUAGE", "English"),
     }

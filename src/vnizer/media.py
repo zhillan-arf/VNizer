@@ -14,6 +14,7 @@ from PIL import Image, ImageDraw, ImageFont
 from .avatars import snapshot_avatars
 from .files import atomic_bytes, atomic_json, digest_file, digest_json
 from .services import headers
+from .tts import pcm_to_wav, service_type, speech_request
 
 FONT = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
 if not Path(FONT).exists():
@@ -39,19 +40,22 @@ def wav_info(path):
 
 
 def speech_chunk(client, settings, chunk, path):
+    url, payload = speech_request(settings, chunk)
     for attempt in range(3):
         try:
-            with client.stream("POST", settings["tts_url"].rstrip("/") + "/speech",
-                               headers=headers(settings.get("tts_api_key")), json={
-                "text": chunk["text"], "mood": chunk["mood"],
-                "speaker": settings["speaker"], "language": settings["language"],
-            }) as response:
+            with client.stream("POST", url,
+                               headers=headers(settings.get("tts_api_key")), json=payload) as response:
                 response.raise_for_status()
                 data = bytearray()
                 for block in response.iter_bytes():
                     data.extend(block)
                     if len(data) > 40 * 1024 * 1024:
                         raise ValueError("The TTS response exceeds the audio size limit.")
+            if service_type(settings) == "supertonic":
+                content_type = response.headers.get("content-type", "").split(";")[0]
+                if content_type != "application/octet-stream":
+                    raise ValueError("Supertonic must return raw PCM audio.")
+                data = pcm_to_wav(data, response.headers.get("x-sample-rate", "24000"))
             temporary = path.with_suffix(".part.wav")
             atomic_bytes(temporary, data)
             duration = wav_info(temporary)
@@ -164,7 +168,8 @@ def render_document(store, document, client=None):
             path = speech / f"{index:06}.wav"
             metadata_path = path.with_suffix(".json")
             identity = digest_json({"text": chunk["text"], "mood": chunk["mood"],
-                                    "speaker": settings["speaker"], "language": settings["language"]})
+                                    "speaker": settings["speaker"], "language": settings["language"],
+                                    **({"tts_type": "supertonic"} if service_type(settings) == "supertonic" else {})})
             cached = json.loads(metadata_path.read_text()) if metadata_path.exists() else {}
             if path.exists() and cached.get("identity") == identity and cached.get("sha256") == digest_file(path):
                 duration = wav_info(path)

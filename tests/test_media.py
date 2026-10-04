@@ -46,18 +46,31 @@ def media_document(tmp_path):
     return store, store.document(did)
 
 
-def test_outputs_have_expected_streams_and_speech_cache(tmp_path):
+@pytest.mark.parametrize("tts_type", ["qwen", "supertonic"])
+def test_outputs_have_expected_streams_and_speech_cache(tmp_path, tts_type):
     store, document = media_document(tmp_path)
+    settings = json.loads(document["settings"])
+    settings["tts_type"] = tts_type
+    document["settings"] = json.dumps(settings)
     calls = []
 
     def respond(request):
         calls.append(json.loads(request.content))
+        if tts_type == "supertonic":
+            with wave.open(io.BytesIO(wav_bytes())) as audio:
+                pcm = audio.readframes(audio.getnframes())
+            return httpx.Response(200, content=pcm, headers={"Content-Type": "application/octet-stream"})
         return httpx.Response(200, content=wav_bytes(), headers={"Content-Type": "audio/wav"})
 
     with httpx.Client(transport=httpx.MockTransport(respond)) as client:
         render_document(store, document, client)
         render_document(store, document, client)
-    assert len(calls) == 2
+        assert len(calls) == 2
+        tts_type = "supertonic" if tts_type == "qwen" else "qwen"
+        settings["tts_type"] = tts_type
+        document["settings"] = json.dumps(settings)
+        render_document(store, document, client)
+    assert len(calls) == 4
     root = store.document_root(document)
     audio, video = probe(root / "audio.mp4"), probe(root / "video.mp4")
     assert [s["codec_type"] for s in audio["streams"]] == ["audio"]

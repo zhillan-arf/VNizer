@@ -74,7 +74,9 @@ class Store:
 
     def settings(self):
         with self.connect() as db:
-            return json.loads(db.execute("SELECT value FROM settings WHERE id=1").fetchone()[0])
+            settings = json.loads(db.execute("SELECT value FROM settings WHERE id=1").fetchone()[0])
+            settings.setdefault("tts_type", "qwen")
+            return settings
 
     def save_settings(self, changes):
         with self.connect() as db:

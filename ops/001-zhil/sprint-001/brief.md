@@ -48,6 +48,7 @@ Use saved page and speech results to avoid repeating successful work.
 | P05 | TTS service, model download, and video rendering | TASK-S001-005 | P04 | Download inventory and media tests; commit |
 | P06 | Web pages and avatar administration | TASK-S001-006 | P05 | Browser workflow and visual checks; commit |
 | P07 | Deployment package and release checks | TASK-S001-007 | P06 | Full test suite and deployment handoff; commit |
+| P08 | External Supertonic TTS support | TASK-S001-008 | P07 | Live speech experiment, adapter checks, and deployment defaults; commit |
 
 ## Acceptance
 
@@ -74,7 +75,8 @@ Existing character permissions do not establish permission for public video dist
 
 ## Completion evidence
 
-All seven controllers are archived with `status: done`.
+The original seven controllers are archived with `status: done`.
+P08 adds the external TTS service after the original release.
 The requirement audit is `docs/verification/release-audit.md`.
 The final test and image-build evidence is `docs/verification/p07.md`.
 The user-run deployment procedure is `deploy/README.md`.

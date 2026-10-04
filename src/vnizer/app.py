@@ -4,7 +4,7 @@ import secrets
 import shutil
 import zipfile
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
 import pymupdf
@@ -30,6 +30,7 @@ class SettingsChange(BaseModel):
     ftt_url: str | None = None
     ftt_model: str | None = Field(default=None, max_length=200)
     ftt_api_key: str | None = Field(default=None, max_length=1000)
+    tts_type: Literal["qwen", "supertonic"] | None = None
     tts_url: str | None = None
     tts_api_key: str | None = Field(default=None, max_length=1000)
     speaker: str | None = Field(default=None, min_length=1, max_length=80)
