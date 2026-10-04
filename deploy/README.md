@@ -53,8 +53,12 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml config
 docker compose --env-file deploy/.env -f deploy/compose.yaml up -d --build web worker
 ```
 
-The default web address is `http://127.0.0.1:8080`.
-Set `VNIZER_BIND_ADDRESS` and `VNIZER_PORT` in `deploy/.env` to change it.
+The default bind address is `0.0.0.0`, and the default host port is `8080`.
+Set `VNIZER_PORT` in `deploy/.env` to select another host port.
+Set `VNIZER_BIND_ADDRESS=127.0.0.1` to allow local access only.
+For example, port 5301 opens at `http://<server-address>:5301`.
+The mapping `0.0.0.0:5301->8080/tcp` maps host port 5301 to container port 8080.
+Port 8080 on the host is separate and can serve another application.
 Set credentials and API keys in this file when needed. Keep it outside Git.
 The tracked `deploy/.env.example` contains the same initial defaults.
 
