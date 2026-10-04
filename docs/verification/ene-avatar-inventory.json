@@ -1,0 +1,40 @@
+{
+  "source": "/home/zhillan/misc/vmodel/assets/work/ene/source.blend",
+  "source_sha256": "4cac1c35efd81cb71b177239d50410e9ce10c238ccb2ff0065296489c86d02d3",
+  "blender": "5.2.2 LTS",
+  "engine": "Cycles CPU",
+  "frames_per_mood": 4,
+  "credits": "Ene edit: AuroraYok / yokkaulove (DA). Preserve the source package terms.",
+  "assets": [
+    {
+      "mood": "neutral",
+      "file": "neutral.webp",
+      "sha256": "e24511f9711acb8f84389445f6fc559582da43c35b1c6c4dcca036a7639ab975",
+      "bytes": 554106
+    },
+    {
+      "mood": "explaining",
+      "file": "explaining.webp",
+      "sha256": "67937657007fe2ebbffdcf6ecc82faf01e1e5797506632fdbbe4638e3d93541e",
+      "bytes": 554110
+    },
+    {
+      "mood": "curious",
+      "file": "curious.webp",
+      "sha256": "513908b4418e096265ca303c7816b019ba1ebc334d89c185bb41a4fcaba24a6c",
+      "bytes": 554716
+    },
+    {
+      "mood": "positive",
+      "file": "positive.webp",
+      "sha256": "e42bbe3e23772c778925dc90d62e8637ce3bdbb7ae42b55398b61ca1df1829eb",
+      "bytes": 554128
+    },
+    {
+      "mood": "serious",
+      "file": "serious.webp",
+      "sha256": "af1485f1b5053faff2ccead877ec79120d59c92a6d952ba5c8cd701287544ec4",
+      "bytes": 554112
+    }
+  ]
+}

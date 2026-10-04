@@ -94,9 +94,10 @@ Loop animated avatar media for the chunk duration. Remove avatar audio.
 Use the speech duration as the timing authority. Concatenate normalized segments.
 Generate audio-only MP4 from the same speech checkpoints.
 
-Use an original, reproducible vector character for the initial mood assets.
-Reuse VModel's portrait framing and short loop approach.
-Do not copy Ene media: the inspected permission statement covers the local project only.
+Prepare local Ene mood clips from the VModel source, as requested in the source brief.
+Reuse its portrait framing, expression mappings, and short loop approach.
+Keep the source model and rendered media outside Git. Preserve source credits with the local asset pack.
+Provide an original vector character as a portable fallback.
 The user can supply other character media through the admin page.
 
 ## Storage migration

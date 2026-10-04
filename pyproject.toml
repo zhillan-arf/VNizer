@@ -19,7 +19,12 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=8,<10", "ruff>=0.9,<1", "playwright>=1.50,<2"]
+dev = [
+    "pytest>=8,<10",
+    "ruff>=0.9,<1",
+    "playwright>=1.50,<2",
+    "soundfile>=0.14.0",
+]
 
 [project.scripts]
 vnizer = "vnizer.cli:main"

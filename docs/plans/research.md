@@ -33,6 +33,7 @@ Full table rows remain available to the listener. A trend summary cannot replace
 Read VModel's `config/web-resources/source.json`, `encoding.json`, and `docs/third-party-notices.md`.
 VModel uses portrait framing and short animated loops with defined performance states.
 Its Ene notice states local project permission and requires separate treatment of rendered media rights.
-Create an original vector avatar with five mood expressions for VNizer.
-This avoids making an unsupported public distribution claim about the existing character.
-The asset generator and generated initial assets belong in this repository.
+The brief requests the VModel character. Prepare local Ene clips from its editable Blender source.
+Keep model files and derived media outside Git, and retain the supplied credits.
+An original vector character provides a portable fallback. Its generator and vector assets belong in Git.
+This supersedes the initial plan to use only the fallback character.

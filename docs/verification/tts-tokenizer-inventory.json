@@ -1,0 +1,42 @@
+{
+  "repository": "Qwen/Qwen3-TTS-Tokenizer-12Hz",
+  "revision": "7dd38ad4e9bad454aae9cd937d0cd577604fe229",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 1519,
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "upstream_hash": "a6344aac8c09253b3b630fb776ae94478aa0275b"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3482,
+      "sha256": "1d9016fbb07873cd720d008423c3da275eac7a20c3997a525594025608d3e1cf",
+      "upstream_hash": "4e1410167eaaf8d5589352711ac86acbcdde3d21"
+    },
+    {
+      "path": "config.json",
+      "bytes": 2336,
+      "sha256": "ee65bb901c876664ab8707c487157aa1a6ee57c65969b28fb5ec9dc211e68167",
+      "upstream_hash": "06cc8dc4c5ec8a1929086b71b98c313020d9268b"
+    },
+    {
+      "path": "configuration.json",
+      "bytes": 76,
+      "sha256": "6bc26d64eb5024b4d1dab5a52371958b429256d6c9d59787f1f5294a54e0cebd",
+      "upstream_hash": "ab58e2eaf53cd14a1a2a7527d9261ceea93a24cd"
+    },
+    {
+      "path": "model.safetensors",
+      "bytes": 682293092,
+      "sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+      "upstream_hash": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258"
+    },
+    {
+      "path": "preprocessor_config.json",
+      "bytes": 234,
+      "sha256": "fcb3805e597e786d4067706e602f6688524640f8d3396790e2e09b5942fcbdfb",
+      "upstream_hash": "ba40914f4f49ab98a8ca545d4892ef7291a39592"
+    }
+  ]
+}
