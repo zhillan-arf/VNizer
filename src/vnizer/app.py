@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from starlette.middleware.sessions import SessionMiddleware
 
+from .avatar_api import router as avatar_router
 from .config import Config
 from .services import check_services
 from .store import RUNNING, Store, new_id, now
@@ -87,6 +88,7 @@ def create_app(config=None):
             raise HTTPException(401, "Sign in to continue.")
 
     secure = [Depends(require_session)]
+    app.include_router(avatar_router(store, secure))
 
     def get_process(process_id):
         process = store.process(process_id)

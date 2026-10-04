@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 
+from .avatars import snapshot_avatars
 from .config import Config
 from .store import Store
 
@@ -28,6 +29,7 @@ def stop_child(child):
 
 
 def run_document(store, document, stopping, command=None):
+    snapshot_avatars(store, document)
     command = command or [sys.executable, "-m", "vnizer.pipeline", document["id"]]
     log = store.document_root(document) / "worker.log"
     log.parent.mkdir(parents=True, exist_ok=True)

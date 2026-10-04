@@ -17,9 +17,10 @@ VIDEO_SUFFIXES = {".mp4", ".webm"}
 
 def seed_avatars(store):
     with store.connect() as db:
+        db.execute("BEGIN IMMEDIATE")
         for mood in MOODS:
             avatar_id = "builtin-" + mood
-            if db.execute("SELECT 1 FROM avatars WHERE id=?", (avatar_id,)).fetchone():
+            if db.execute("SELECT 1 FROM avatars WHERE mood=?", (mood,)).fetchone():
                 continue
             target = store.root / "avatars" / f"{avatar_id}.png"
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -71,6 +72,7 @@ def snapshot_avatars(store, document):
     target.mkdir(parents=True, exist_ok=True)
     result = {}
     with store.connect() as db:
+        db.execute("BEGIN IMMEDIATE")
         for mood in MOODS:
             row = db.execute("SELECT * FROM avatars WHERE mood=? ORDER BY selected DESC,builtin DESC LIMIT 1",
                              (mood,)).fetchone()
