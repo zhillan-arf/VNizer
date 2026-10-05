@@ -53,6 +53,7 @@ Use saved page and speech results to avoid repeating successful work.
 | P11 | FTT connection diagnosis | TASK-S001-011 | P07 | Live request, error check, and commit |
 | P12 | New FTT service validation | TASK-S001-012 | P11 | Live text and image requests; commit |
 | P13 | Qwen FTT activation | TASK-S001-013 | P12 | Live contract checks, defaults, and commit |
+| P14 | Deployment management script | TASK-S001-014 | P13 | Script checks, Compose review, and commit |
 
 ## Acceptance
 

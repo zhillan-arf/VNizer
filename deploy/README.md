@@ -50,8 +50,14 @@ A prepared file exists locally. For a new checkout, create it from the example:
 ```sh
 test -f deploy/.env || cp deploy/.env.example deploy/.env
 docker compose --env-file deploy/.env -f deploy/compose.yaml config
-docker compose --env-file deploy/.env -f deploy/compose.yaml up -d --build web worker
+./deploy/manage.sh start
 ```
+
+Use `./deploy/manage.sh status` to show container status.
+Use `./deploy/manage.sh logs` to follow logs from the running services.
+Use `./deploy/manage.sh restart` to rebuild and replace the web and worker containers.
+Use `./deploy/manage.sh stop` to stop all VNizer services.
+The stop command keeps application data under `data/`.
 
 The default bind address is `0.0.0.0`, and the default host port is `8080`.
 Set `VNIZER_PORT` in `deploy/.env` to select another host port.
@@ -83,7 +89,7 @@ Then run:
 
 ```sh
 docker compose --env-file deploy/.env -f deploy/compose.yaml --profile tts up -d --build tts
-docker compose --env-file deploy/.env -f deploy/compose.yaml up -d --build web worker
+./deploy/manage.sh start
 ```
 
 The local TTS host port is `127.0.0.1:1813`. Its model volume is read-only.
