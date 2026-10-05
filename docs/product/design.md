@@ -57,7 +57,7 @@ FTT uses an OpenAI-compatible `/v1/models` probe and `/v1/chat/completions` requ
 The preflight also sends a small image request to detect disabled image input.
 Normalize URLs with or without `/v1`.
 Resolve the advertised model when no model is configured. Preserve explicit model choices.
-The supplied default endpoint is `http://10.12.1.193:1812`.
+The supplied default endpoint is `http://10.12.1.193:5003`.
 Reject truncated, empty, malformed, or structurally invalid responses.
 Save raw responses before conversion so failed normalization can be inspected.
 Bound timeouts and retries. Do not silently fall back to partial plain-text extraction.

@@ -97,10 +97,9 @@ Use Check saved connections before uploading PDFs.
 Changes apply to new processes and retries. Running attempts keep their saved settings.
 Switching the TTS type invalidates incompatible speech checkpoints.
 
-The FTT endpoints on ports 1812 and 1813 advertise `Qwen/Qwen3.8-27B-FP8`.
-Both accept text requests but reject image input. Their launch arguments include `--language-model-only`.
-Select an FTT service that accepts images in Admin before conversion.
-VNizer detects this condition before creating a conversion process.
+The default FTT endpoint on port 5003 advertises `Qwen3.6-35B-A3B-FP8`.
+It accepts image input and returns VNizer page structures.
+VNizer checks this condition before it creates a conversion process.
 
 ## Service settings API
 
@@ -110,7 +109,7 @@ The following example applies when authentication is bypassed:
 ```sh
 curl -X POST http://127.0.0.1:8080/api/settings \
   -H 'Content-Type: application/json' \
-  -d '{"ftt_url":"http://10.12.1.193:1812","ftt_model":"","tts_type":"supertonic","tts_url":"http://10.12.1.249:5001","speaker":"F1","language":"English"}'
+  -d '{"ftt_url":"http://10.12.1.193:5003","ftt_model":"","tts_type":"supertonic","tts_url":"http://10.12.1.249:5001","speaker":"F1","language":"English"}'
 curl -X POST http://127.0.0.1:8080/api/health-check
 ```
 
@@ -172,7 +171,7 @@ Cloud deployment is outside Sprint 001.
 ## Live acceptance with the prepared PDFs
 
 1. Check the external TTS service, or deploy local Qwen when the GPU is available.
-2. Enable image input on FTT or configure another compatible endpoint.
+2. Confirm that the FTT service accepts image input.
 3. Save the correct service URLs, speaker, and source language in Admin.
 4. Check both service connections.
 5. Upload two short PDFs, including a table, figure, and equation.

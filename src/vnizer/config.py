@@ -42,7 +42,7 @@ def initial_settings():
         raise ValueError("VNIZER_TTS_TYPE must be qwen or supertonic.")
     return {
         "tts_type": tts_type,
-        "ftt_url": os.getenv("VNIZER_FTT_URL", "http://10.12.1.193:1812"),
+        "ftt_url": os.getenv("VNIZER_FTT_URL", "http://10.12.1.193:5003"),
         "ftt_model": os.getenv("VNIZER_FTT_MODEL", ""),
         "ftt_api_key": os.getenv("VNIZER_FTT_API_KEY", ""),
         "tts_url": os.getenv("VNIZER_TTS_URL", "http://127.0.0.1:1813"),
